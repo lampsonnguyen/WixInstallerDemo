@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="{D16E42B5-3C6F-4EE5-B2F4-727BF8B74A92}" Name="Demo website setup" Language="1033" Version="1.0.0.0" Manufacturer="Me" UpgradeCode="9279b740-8419-45c4-9538-6a45f8e949c7">
+    <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <Media Id="1" Cabinet="DemoWebsite.cab" EmbedCab="yes" />
+
+    <Property Id="DB_USER" Value="sa"/>
+    <Property Id="DB_PASSWORD" Value="sa"/>
+    <Property Id="DB_SERVER" Value="LOCAL"/>
+    <Property Id="DB_DATABASE" Value="DemoWebsite"/>
+
+    <Feature Id="ProductFeature" Title="DemoWebsite.Setup" Level="1">
+      <ComponentGroupRef Id="MyWebWebComponents" />
+      <ComponentGroupRef Id="DemoWebsiteIssConfiguration" />
+    </Feature>
+    <!-- Specify UI -->
+    <UIRef Id="MyUI" />
+    <Property Id="WIXUI_INSTALLDIR" Value="INETPUB" />
+  </Product>
+
+  <Fragment>
+    <!-- Will default to C:\ if that is the main disk-->
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <!-- Will reference to C:\inetpub-->
+      <Directory Id="INETPUB" Name="Inetpub">
+        <!-- Will reference to c:\Inetpub\Demowebsite-->
+        <Directory Id="INSTALLFOLDER" Name="DemoWebsite">
+        </Directory>
+      </Directory>
+    </Directory>
+  </Fragment>
+</Wix>
