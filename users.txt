@@ -1,0 +1,42 @@
+n a Luna SA HSM, different types of users have varying levels of access and capabilities. The ability to access the HSM status generally falls under the purview of administrative roles. Here are the main types of users and their typical access levels:
+
+1. HSM Administrator (HSM Admin)
+Role: The HSM Admin has the highest level of access and control over the HSM. This user is responsible for the initial configuration and ongoing management of the HSM.
+Access Capabilities:
+Full control over HSM configurations and settings.
+Can initialize and reset the HSM.
+Can create and manage partitions.
+Can enable and manage user roles and permissions.
+Can access the HSM status via LunaSH and REST API.
+2. Partition Security Officer (SO)
+Role: The Security Officer is responsible for managing individual partitions within the HSM. This user can set up and manage partition-specific settings and policies.
+Access Capabilities:
+Can initialize and manage the partition.
+Can set and change the partition's user and crypto officer (CO) PINs.
+May have limited access to partition-specific status but not the overall HSM status.
+3. Crypto Officer (CO)
+Role: The Crypto Officer manages cryptographic operations within a partition. This user handles key management and cryptographic operations.
+Access Capabilities:
+Can create, delete, and manage cryptographic keys within the partition.
+Can perform cryptographic operations.
+Typically does not have access to the overall HSM status.
+4. Crypto User
+Role: The Crypto User is an application user that interacts with the HSM for cryptographic operations.
+Access Capabilities:
+Can perform cryptographic operations as permitted by the partition's policies.
+Does not have access to the HSM status.
+5. Audit User
+Role: The Audit User is responsible for monitoring and auditing HSM activities.
+Access Capabilities:
+Can access audit logs and perform audit-related tasks.
+May have access to certain status information relevant to auditing but typically not full HSM status.
+Accessing HSM Status
+For accessing the HSM status, the primary roles involved are the HSM Administrator and possibly the Partition Security Officer for partition-specific status. Here’s how these users can access the HSM status:
+
+
+Summary
+HSM Administrator: Full access to HSM status and management.
+Partition Security Officer: Limited to partition-specific status.
+Crypto Officer and Crypto User: No access to HSM status.
+Audit User: May have access to audit-relevant status information.
+The HSM status is primarily accessible by the HSM Administrator through LunaSH commands or the REST API, configured to allow admin-level access.

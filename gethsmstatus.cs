@@ -149,3 +149,147 @@ static async Task Main(string[] args)
         }
     }
     }
+	//==============================================================================
+	
+	using System;
+using Net.Pkcs11Interop.Common;
+using Net.Pkcs11Interop.HighLevelAPI;
+using Net.Pkcs11Interop.HighLevelAPI.Factories;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        string libraryPath = "/usr/lib/libCryptoki2_64.so"; // Path to the PKCS#11 library
+        ulong slotId = 0; // The slot ID of the partition you want to check
+
+        try
+        {
+            // Initialize PKCS#11 library
+            IPkcs11Library pkcs11Library = new Pkcs11LibraryFactory().LoadPkcs11Library(
+                Pkcs11InteropFactories.Pkcs11InteropFactory, libraryPath, AppType.MultiThreaded);
+
+            // Get the list of slots
+            ISlot[] slots = pkcs11Library.GetSlotList(SlotsType.WithTokenPresent);
+
+            foreach (ISlot slot in slots)
+            {
+                Console.WriteLine($"Slot ID: {slot.SlotId}");
+
+                // Check if the token is present in the slot
+                if (slot.TokenInfo != null)
+                {
+                    Console.WriteLine("Token present");
+                    Console.WriteLine($"Token Label: {slot.TokenInfo.Label}");
+                    Console.WriteLine($"Token Manufacturer: {slot.TokenInfo.ManufacturerId}");
+                    Console.WriteLine($"Token Model: {slot.TokenInfo.Model}");
+                    Console.WriteLine($"Token Serial Number: {slot.TokenInfo.SerialNumber}");
+
+                    // Open a session with the token
+                    using (ISession session = slot.OpenSession(SessionType.ReadWrite))
+                    {
+                        try
+                        {
+                            // Attempt to login as the user
+                            session.Login(CKU.CKU_USER, "user-PIN");
+
+                            // If login is successful, the partition is not locked out
+                            Console.WriteLine("Partition is not locked out");
+
+                            // Perform other operations if needed...
+
+                            // Logout
+                            session.Logout();
+                        }
+                        catch (Pkcs11Exception ex)
+                        {
+                            if (ex.RV == CKR.CKR_PIN_LOCKED)
+                            {
+                                // If CKR_PIN_LOCKED error is thrown, the partition is locked out
+                                Console.WriteLine("Partition is locked out");
+                            }
+                            else
+                            {
+                                // Handle other exceptions
+                                Console.WriteLine($"Error occurred: {ex.RV}");
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("No token present");
+                }
+
+                Console.WriteLine();
+            }
+
+            // Finalize the PKCS#11 library
+            pkcs11Library.Dispose();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+    }
+}
+
+
+using Net.Pkcs11Interop.Common;
+using Net.Pkcs11Interop.HighLevelAPI;
+using Net.Pkcs11Interop.HighLevelAPI.Factories;
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        string libraryPath = "path_to_your_pkcs11_library"; // Replace with actual path
+        CKU userRole = CKU.CKU_USER; // User role (e.g., CKU_USER for Partition Security Officer)
+        string pin = "your_partition_pin"; // Replace with actual PIN
+
+        try
+        {
+            // Load PKCS#11 library
+            using (IPkcs11Library pkcs11Library = new Pkcs11LibraryFactory().LoadPkcs11Library(libraryPath, AppType.MultiThreaded))
+            {
+                // Get list of available slots
+                ISlotList slots = pkcs11Library.GetSlotList(SlotsType.WithTokenPresent);
+
+                if (slots.Count > 0)
+                {
+                    // Open session with the first slot
+                    using (ISession session = slots[0].OpenSession(SessionType.ReadWrite))
+                    {
+                        // Login to the partition
+                        session.Login(userRole, pin);
+
+                        // Example: List all objects (keys, certificates, etc.) in the token
+                        var objects = session.FindAllObjects();
+                        foreach (var obj in objects)
+                        {
+                            Console.WriteLine($"Object handle: {obj.ObjectId}");
+                            // Retrieve and print object attributes if needed
+                        }
+
+                        // Logout from the session
+                        session.Logout();
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("No slots with tokens found.");
+                }
+            }
+        }
+        catch (Pkcs11Exception ex)
+        {
+            Console.WriteLine($"PKCS#11 error: {ex.Message} (Error code: {ex.RV})");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+    }
+}
+
