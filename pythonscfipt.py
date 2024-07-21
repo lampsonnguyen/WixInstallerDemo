@@ -1,3 +1,7 @@
+python hsm_manager.py <slot> <user_pin>
+
+
+
 import pycryptoki
 from pycryptoki.default_templates import get_default_key_template
 from pycryptoki.cryptoki import CKA_LABEL, CKA_OBJECT_ID, CKR_OK
