@@ -1,15 +1,19 @@
 ﻿using KeyParse;
+using System.Security.Cryptography;
 namespace KeyParse;
 class Program
 {
     static void Main()
     {
+        Aes aes = Aes.Create();
+        
         string path = @"C:\Users\lamps\OneDrive\Documents\GitHub\WixInstallerDemo\KeyParse\";
         // Example for AES key with CTR mode
-        GenerateAndPrint(path + "key_ring_aes_ctr.bin", 1, 3, 1, "AES_CTR_Key", 0, 3, 5, 3, 32);
+        GenerateAndPrint(path + "key_ring_aes_ctr.bin", aes.Key, 1, 3, 1, "AES_CTR_Key", 0, 3, 5, 3, 32);
 
+        ECDsa ec384 = ECDsa.Create(ECCurve.NamedCurves.brainpoolP384t1);
         // Example for EC P-384 key
-        GenerateAndPrint(path + "key_ring_ec_p384.bin", 1, 1, 1, "EC_P384_Key", 1, 0, 0, 3, 96);
+        GenerateAndPrint(path + "key_ring_ec_p384.bin",ec384.key, 1, 1, 1, "EC_P384_Key", 1, 0, 0, 3, 96);
 
         // Example for EC P-521 key
         GenerateAndPrint(path + "key_ring_ec_p521.bin", 1, 1, 1, "EC_P521_Key", 2, 0, 0, 4, 132);
@@ -48,10 +52,10 @@ class Program
         }
     }
 
-    static void GenerateAndPrint(string filePath, uint keyValid, uint keyType, uint keyFormat, string keyName, uint keyECCurve, uint keyAESCipherType, uint keyAESCipherMode, uint keyIntegrityHashAlgorithm, uint keyLength)
+    static void GenerateAndPrint(string filePath, byte[] key, uint keyValid, uint keyType, uint keyFormat, string keyName, uint keyECCurve, uint keyAESCipherType, uint keyAESCipherMode, uint keyIntegrityHashAlgorithm, uint keyLength)
     {
         Console.WriteLine("------------------------------");
-        KeyRingGenerator.GenerateTestFile(filePath, keyValid, keyType, keyFormat, keyName, keyECCurve, keyAESCipherType, keyAESCipherMode, keyIntegrityHashAlgorithm, keyLength);
+        KeyRingGenerator.GenerateTestFile(filePath,key, keyValid, keyType, keyFormat, keyName, keyECCurve, keyAESCipherType, keyAESCipherMode, keyIntegrityHashAlgorithm, keyLength);
         Console.WriteLine($"Test binary file created at: {filePath}");
     }
 }

@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("KeyParse")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+90a98f67b6d2f816ea3132812ff6d5b8e4b068f6")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+556fd16409ba365077daa631514e6f34db0cb073")]
 [assembly: System.Reflection.AssemblyProductAttribute("KeyParse")]
 [assembly: System.Reflection.AssemblyTitleAttribute("KeyParse")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -1,11 +1,12 @@
-﻿using System.Text;
+﻿using System.Collections;
+using System.Text;
 
 
 namespace KeyParse
 {
     public class KeyRingGenerator
     {
-        public static void GenerateTestFile(string filePath, uint keyValid, uint keyType, uint keyFormat, string keyName, uint keyECCurve, uint keyAESCipherType, uint keyAESCipherMode, uint keyIntegrityHashAlgorithm, uint keyLength)
+        public static void GenerateTestFile(string filePath, byte[] key, uint keyValid, uint keyType, uint keyFormat, string keyName, uint keyECCurve, uint keyAESCipherType, uint keyAESCipherMode, uint keyIntegrityHashAlgorithm, uint keyLength)
         {
             using (BinaryWriter writer = new BinaryWriter(File.Open(filePath, FileMode.Create)))
             {
@@ -49,9 +50,10 @@ namespace KeyParse
                         memoryWriter.Write(keyLength);
 
                         // Key (144 bytes)
-                        byte[] key = new byte[144];
-                        new Random().NextBytes(key);
-                        memoryWriter.Write(key);
+                        byte[] keyValue = new byte[144];
+                        Buffer.BlockCopy(key, 0, keyValue, 0, key.Length);
+                        
+                        memoryWriter.Write(keyValue);
 
                         // Key Reserved (240 bytes)
                         byte[] keyReserved = new byte[240];
