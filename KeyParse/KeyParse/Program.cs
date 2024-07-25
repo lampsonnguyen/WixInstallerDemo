@@ -4,7 +4,7 @@ class Program
 {
     static void Main()
     {
-        string path = @"C:\Users\lamps\OneDrive\Documents\GitHub\WixInstallerDemo\KeyParse\KeyParse\";
+        string path = @"C:\Users\lamps\OneDrive\Documents\GitHub\WixInstallerDemo\KeyParse\";
         // Example for AES key with CTR mode
         GenerateAndPrint(path + "key_ring_aes_ctr.bin", 1, 3, 1, "AES_CTR_Key", 0, 3, 5, 3, 32);
 

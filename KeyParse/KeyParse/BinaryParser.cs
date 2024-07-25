@@ -15,22 +15,41 @@ namespace KeyParse
                 throw new ArgumentException("Invalid data length");
             }
 
-            KeyData keyData = new KeyData();
-
-            keyData.KeyValid = BitConverter.ToUInt32(data, 0);
-            keyData.KeyType = BitConverter.ToUInt32(data, 4);
-            keyData.KeyFormat = BitConverter.ToUInt32(data, 8);
-            keyData.KeyName = Encoding.UTF8.GetString(data, 12, 32).TrimEnd('\0');
-            keyData.KeyECCurve = BitConverter.ToUInt32(data, 44);
-            keyData.KeyAESCipherType = BitConverter.ToUInt32(data, 48);
-            keyData.KeyAESCipherMode = BitConverter.ToUInt32(data, 52);
-            keyData.KeyIntegrityHashAlgorithm = BitConverter.ToUInt32(data, 56);
-            keyData.KeyIntegrityHash = data[60..124];
-            keyData.KeyLength = BitConverter.ToUInt32(data, 124);
-            keyData.Key = data[128..272];
-            keyData.KeyReserved = data[272..512];
+            KeyData keyData = new()
+            {
+                KeyValid = BitConverter.ToUInt32(data, 0),
+                KeyType = BitConverter.ToUInt32(data, 4),
+                KeyFormat = BitConverter.ToUInt32(data, 8),
+                KeyName = Encoding.UTF8.GetString(data, 12, 32).TrimEnd('\0'),
+                KeyECCurve = BitConverter.ToUInt32(data, 44),
+                KeyAESCipherType = BitConverter.ToUInt32(data, 48),
+                KeyAESCipherMode = BitConverter.ToUInt32(data, 52),
+                KeyIntegrityHashAlgorithm = BitConverter.ToUInt32(data, 56),
+                KeyIntegrityHash = data[60..124],
+                KeyLength = BitConverter.ToUInt32(data, 124),
+                Key = data[128..272],
+                KeyReserved = data[272..512]
+            };
 
             return keyData;
+        }
+
+
+        public static HeaderData KeyRingHeaderParser(byte[] data)
+        {
+            if (data.Length != 64)
+            {
+                throw new ArgumentException("Invalid data length");
+            }
+
+            HeaderData headerData = new()
+            {
+                HeaderFlag = data[0..4],
+                HeaderVersion = BitConverter.ToInt32(data, 4),
+                NumberOfKeys = BitConverter.ToInt32(data, 12),
+                Reserved = data[272..512]
+            };
+            return headerData;
         }
     }
 }
