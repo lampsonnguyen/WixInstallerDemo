@@ -1,43 +1,33 @@
 ﻿using KeyParse;
+using System;
+using System.IO;
 using System.Security.Cryptography;
-namespace KeyParse;
+
 class Program
 {
-    static void Main()
+    static void Main(string[] args)
     {
-        Aes aes = Aes.Create();
-        
-        string path = @"C:\Users\lamps\OneDrive\Documents\GitHub\WixInstallerDemo\KeyParse\";
-        // Example for AES key with CTR mode 
-        GenerateAndPrintAESKeys(path + "key_ring_aes_ctr.bin", 1, 256); // AES 256-bit key
+        // Example of generating a single file with all four types of keys
+        GenerateAndPrintAllKeys("key_ring_all_keys.bin");
 
-        // Example for EC P-384 key
-        GenerateAndPrintECKeys(path + "key_ring_ec_p384.bin", 1, ECCurve.NamedCurves.nistP384);
+        // Read and parse the file to demonstrate decoding
+        string filePath = "key_ring_all_keys.bin";
 
-        // Example for EC P-521 key
-        GenerateAndPrintECKeys(path + "key_ring_ec_p521.bin", 1, ECCurve.NamedCurves.nistP521);
+        byte[] binaryData = File.ReadAllBytes(filePath);
+        var header = HeaderParser.Parse(binaryData);
+        Console.WriteLine($"Parsed Header from {filePath}:");
+        Console.WriteLine("Header Flag: " + header.HeaderFlag);
+        Console.WriteLine("Header Version: " + header.HeaderVersion);
+        Console.WriteLine("Number of Keys: " + header.NumberOfKeys);
+        Console.WriteLine();
 
-        // Example for EC P-256 key
-        GenerateAndPrintECKeys(path + "key_ring_ec_p256.bin", 1, ECCurve.NamedCurves.nistP256);
-
-
-
-
-        // Read and parse the files to demonstrate decoding
-        string[] filePaths = { "key_ring_aes_ctr.bin", "key_ring_ec_p384.bin", "key_ring_ec_p521.bin", "key_ring_ec_p256.bin" };
-
-        DisplayResult(path, filePaths);
-    }
-
-    private static void DisplayResult(string path, string[] filePaths)
-    {
-        foreach (var filePath in filePaths)
+        for (uint i = 0; i < header.NumberOfKeys; i++)
         {
-            byte[] binaryData = File.ReadAllBytes(path + filePath);
-            KeyData parsedData = BinaryParser.Parse(binaryData);
-            Console.WriteLine("------------------------------");
+            byte[] keyData = new byte[512];
+            Array.Copy(binaryData, 64 + i * 512, keyData, 0, 512);
+            KeyData parsedData = KeyData.Parse(keyData);
 
-            Console.WriteLine($"Parsed Data from {filePath}:");
+            Console.WriteLine($"Parsed Data for Key {i + 1} from {filePath}:");
             Console.WriteLine("Key Valid: " + parsedData.DecodeKeyValid());
             Console.WriteLine("Key Type: " + parsedData.DecodeKeyType());
             Console.WriteLine("Key Format: " + parsedData.DecodeKeyFormat());
@@ -50,20 +40,21 @@ class Program
             Console.WriteLine("Key Length: " + parsedData.KeyLength);
             Console.WriteLine("Key: " + BitConverter.ToString(parsedData.Key));
             Console.WriteLine("Key Reserved: " + BitConverter.ToString(parsedData.KeyReserved));
-            Console.WriteLine("------------------------------");
+            Console.WriteLine();
         }
     }
 
-
-    static void GenerateAndPrintAESKeys(string filePath, uint numberOfKeys, uint keyLength)
+    static void GenerateAndPrintAllKeys(string filePath)
     {
-        KeyRingGenerator.GenerateTestFile(filePath, numberOfKeys, i => KeyRingGenerator.GenerateAESKey(i, keyLength));
+        var keyGenerators = new Func<uint, (uint keyType, uint keyFormat, string keyName, uint keyECCurve, uint keyAESCipherType, uint keyAESCipherMode, uint keyIntegrityHashAlgorithm, uint keyLength, byte[] key, byte[] keyIntegrityHash)>[]
+        {
+            i => KeyRingGenerator.GenerateAESKey(i, 256), // AES 256-bit key
+            i => KeyRingGenerator.GenerateECKey(i, ECCurve.NamedCurves.nistP384),
+            i => KeyRingGenerator.GenerateECKey(i, ECCurve.NamedCurves.nistP521),
+            i => KeyRingGenerator.GenerateECKey(i, ECCurve.NamedCurves.nistP256)
+        };
+
+        KeyRingGenerator.GenerateTestFile(filePath, (uint)keyGenerators.Length, keyGenerators);
         Console.WriteLine($"Test binary file created at: {filePath}");
     }
-
-    static void GenerateAndPrintECKeys(string filePath, uint numberOfKeys, ECCurve curve)
-    {
-        KeyRingGenerator.GenerateTestFile(filePath, numberOfKeys, i => KeyRingGenerator.GenerateECKey(i, curve));
-        Console.WriteLine($"Test binary file created at: {filePath}");
-    } 
 }
