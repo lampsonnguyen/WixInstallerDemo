@@ -41,8 +41,9 @@ public class KeyRingGenerator
 
     private static void WriteHeader(BinaryWriter writer, uint numberOfKeys)
     {
-        // Header Flag (4 bytes)
-        writer.Write(0x4B484452); // "KHDR"
+        // Header Flag (4 bytes) 
+        int flag = ConvertStringToHex("KHDR");
+        writer.Write(flag); 
 
         // Header Version (4 bytes)
         writer.Write(2); // Version 2
@@ -55,6 +56,15 @@ public class KeyRingGenerator
 
         // Reserved (48 bytes)
         writer.Write(new byte[48]);
+    }
+    private static int ConvertStringToHex(string asciiString)
+    {
+        int hexValue = 0;
+        foreach (char c in asciiString)
+        {
+            hexValue = (hexValue << 8) + c;
+        }
+        return hexValue;
     }
 
     private static void WriteKey(BinaryWriter writer, uint keyValid, uint keyType, uint keyFormat, string keyName, uint keyECCurve, uint keyAESCipherType, uint keyAESCipherMode, uint keyIntegrityHashAlgorithm, uint keyLength, byte[] key, byte[] keyIntegrityHash)
@@ -114,7 +124,8 @@ public class KeyRingGenerator
             byte[] key = new byte[144];
             Array.Copy(aes.Key, key, aes.Key.Length);
 
-            byte[] keyIntegrityHash = SHA256.HashData(aes.Key);
+            byte[] keyIntegrityHash = new byte[64];
+            Array.Copy(SHA256.HashData(aes.Key), keyIntegrityHash, aes.Key.Length);
 
             return (3, 1, $"AESKey_{keyIndex}", 0, 3, 5, 3, keyLength / 8, key, keyIntegrityHash);
         }
@@ -130,7 +141,9 @@ public class KeyRingGenerator
             Array.Copy(parameters.Q.X, key, parameters.Q.X.Length);
             Array.Copy(parameters.Q.Y, 0, key, parameters.Q.X.Length, parameters.Q.Y.Length);
 
-            byte[] keyIntegrityHash = SHA256.HashData(key);
+            byte[] keyIntegrityHash = new byte[64];
+            var hash = SHA256.HashData(key);
+            Array.Copy(hash, keyIntegrityHash, hash.Length);
 
             uint keyLength = (uint)(parameters.Q.X.Length + parameters.Q.Y.Length);
             uint curveType = curve.Oid.Value switch

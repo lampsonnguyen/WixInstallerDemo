@@ -7,16 +7,20 @@ class Program
 {
     static void Main(string[] args)
     {
+        string filePath = @"C:\Users\lamps\OneDrive\Documents\GitHub\WixInstallerDemo\KeyParse\key_ring_all_keys.bin";
+
         // Example of generating a single file with all four types of keys
-        GenerateAndPrintAllKeys("key_ring_all_keys.bin");
+        GenerateAndPrintAllKeys(filePath);
 
         // Read and parse the file to demonstrate decoding
-        string filePath = "key_ring_all_keys.bin";
-
         byte[] binaryData = File.ReadAllBytes(filePath);
-        var header = HeaderParser.Parse(binaryData);
+
+        byte[] headerData = new byte[64];
+        Array.Copy(binaryData, 0, headerData, 0, 64);
+
+        var header = KeyRingParser.HeaderParser(headerData);
         Console.WriteLine($"Parsed Header from {filePath}:");
-        Console.WriteLine("Header Flag: " + header.HeaderFlag);
+        Console.WriteLine("Header Flag: " + BitConverter.ToString(header.HeaderFlag).Replace("-", string.Empty));
         Console.WriteLine("Header Version: " + header.HeaderVersion);
         Console.WriteLine("Number of Keys: " + header.NumberOfKeys);
         Console.WriteLine();
@@ -25,7 +29,7 @@ class Program
         {
             byte[] keyData = new byte[512];
             Array.Copy(binaryData, 64 + i * 512, keyData, 0, 512);
-            KeyData parsedData = KeyData.Parse(keyData);
+            KeyData parsedData = KeyRingParser.KeyEntryParser(keyData);
 
             Console.WriteLine($"Parsed Data for Key {i + 1} from {filePath}:");
             Console.WriteLine("Key Valid: " + parsedData.DecodeKeyValid());
