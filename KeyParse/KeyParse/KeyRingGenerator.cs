@@ -5,7 +5,7 @@ using System.Text;
 
 public class KeyRingGenerator
 {
-    public static void GenerateTestFile(string filePath, uint numberOfKeys, Func<uint, (uint keyType, uint keyFormat, string keyName, uint keyECCurve, uint keyAESCipherType, uint keyAESCipherMode, uint keyIntegrityHashAlgorithm, uint keyLength, byte[] key, byte[] keyIntegrityHash)>[] keyGenerators)
+    public static void GenerateTestFile(string filePath, uint numberOfKeys, Func<uint, KeyData>[] keyGenerators)
     {
         using (BinaryWriter writer = new BinaryWriter(File.Open(filePath, FileMode.Create)))
         {
@@ -21,7 +21,7 @@ public class KeyRingGenerator
                     for (uint i = 0; i < numberOfKeys; i++)
                     {
                         var keyData = keyGenerators[i](i);
-                        WriteKey(memoryWriter, 1, keyData.keyType, keyData.keyFormat, keyData.keyName, keyData.keyECCurve, keyData.keyAESCipherType, keyData.keyAESCipherMode, keyData.keyIntegrityHashAlgorithm, keyData.keyLength, keyData.key, keyData.keyIntegrityHash);
+                        WriteKey(memoryWriter, keyData);
                     }
 
                     // Write Footer
@@ -43,7 +43,7 @@ public class KeyRingGenerator
     {
         // Header Flag (4 bytes) 
         int flag = ConvertStringToHex("KHDR");
-        writer.Write(flag); 
+        writer.Write(flag);
 
         // Header Version (4 bytes)
         writer.Write(2); // Version 2
@@ -67,42 +67,42 @@ public class KeyRingGenerator
         return hexValue;
     }
 
-    private static void WriteKey(BinaryWriter writer, uint keyValid, uint keyType, uint keyFormat, string keyName, uint keyECCurve, uint keyAESCipherType, uint keyAESCipherMode, uint keyIntegrityHashAlgorithm, uint keyLength, byte[] key, byte[] keyIntegrityHash)
+    private static void WriteKey(BinaryWriter writer, KeyData keyEntry)
     {
         // Key Valid (4 bytes)
-        writer.Write(keyValid);
+        writer.Write(keyEntry.KeyValid);
 
         // Key Type (4 bytes)
-        writer.Write(keyType);
+        writer.Write(keyEntry.KeyType);
 
         // Key Format (4 bytes)
-        writer.Write(keyFormat);
+        writer.Write(keyEntry.KeyFormat);
 
         // Key Name (32 bytes)
         byte[] keyNameBytes = new byte[32];
-        Encoding.UTF8.GetBytes(keyName, 0, keyName.Length, keyNameBytes, 0);
+        Encoding.UTF8.GetBytes(keyEntry.KeyName, 0, keyEntry.KeyName.Length, keyNameBytes, 0);
         writer.Write(keyNameBytes);
 
         // Key EC Curve (4 bytes)
-        writer.Write(keyECCurve);
+        writer.Write(keyEntry.KeyECCurve);
 
         // Key AES Cipher Type (4 bytes)
-        writer.Write(keyAESCipherType);
+        writer.Write(keyEntry.KeyAESCipherType);
 
         // Key AES Cipher Mode (4 bytes)
-        writer.Write(keyAESCipherMode);
+        writer.Write(keyEntry.KeyAESCipherMode);
 
         // Key Integrity Hash Algorithm (4 bytes)
-        writer.Write(keyIntegrityHashAlgorithm);
+        writer.Write(keyEntry.KeyIntegrityHashAlgorithm);
 
         // Key Integrity Hash (64 bytes)
-        writer.Write(keyIntegrityHash);
+        writer.Write(keyEntry.KeyIntegrityHash);
 
         // Key Length (4 bytes)
-        writer.Write(keyLength);
+        writer.Write(keyEntry.KeyLength);
 
         // Key (144 bytes)
-        writer.Write(key);
+        writer.Write(keyEntry.Key);
 
         // Key Reserved (240 bytes)
         writer.Write(new byte[240]);
@@ -114,7 +114,7 @@ public class KeyRingGenerator
         writer.Write(new byte[32]);
     }
 
-    public static (uint keyType, uint keyFormat, string keyName, uint keyECCurve, uint keyAESCipherType, uint keyAESCipherMode, uint keyIntegrityHashAlgorithm, uint keyLength, byte[] key, byte[] keyIntegrityHash) GenerateAESKey(uint keyIndex, uint keyLength)
+    public static KeyData GenerateAESKey(uint keyIndex, uint keyLength)
     {
         using (var aes = Aes.Create())
         {
@@ -127,11 +127,25 @@ public class KeyRingGenerator
             byte[] keyIntegrityHash = new byte[64];
             Array.Copy(SHA256.HashData(aes.Key), keyIntegrityHash, aes.Key.Length);
 
-            return (3, 1, $"AESKey_{keyIndex}", 0, 3, 5, 3, keyLength / 8, key, keyIntegrityHash);
+            KeyData keyData = new KeyData()
+            {
+                KeyType = 3,
+                KeyFormat = 1,
+                KeyName = $"AESKey_{keyIndex}",
+                KeyECCurve = 0,
+                KeyAESCipherType = 3,
+                KeyAESCipherMode = 5,
+                KeyIntegrityHashAlgorithm = 3,
+                KeyLength = keyLength / 8,
+                Key = key,
+                KeyIntegrityHash = keyIntegrityHash
+            };
+             
+            return keyData;
         }
     }
 
-    public static (uint keyType, uint keyFormat, string keyName, uint keyECCurve, uint keyAESCipherType, uint keyAESCipherMode, uint keyIntegrityHashAlgorithm, uint keyLength, byte[] key, byte[] keyIntegrityHash) GenerateECKey(uint keyIndex, ECCurve curve)
+    public static KeyData GenerateECKey(uint keyIndex, ECCurve curve)
     {
         using (var ecdsa = ECDsa.Create(curve))
         {
@@ -153,8 +167,20 @@ public class KeyRingGenerator
                 "1.2.840.10045.3.1.7" => 3, // P-256
                 _ => 0
             };
-
-            return (1, 1, $"ECKey_{keyIndex}", curveType, 0, 0, 3, keyLength, key, keyIntegrityHash);
+            KeyData keyData = new KeyData()
+            {
+                KeyType =1,
+                KeyFormat = 1,
+                KeyName = $"ECKey_{keyIndex}",
+                KeyECCurve = curveType,
+                KeyAESCipherType = 0,
+                KeyAESCipherMode = 0,
+                KeyIntegrityHashAlgorithm = 3,
+                KeyLength = keyLength ,
+                Key = key,
+                KeyIntegrityHash = keyIntegrityHash
+            };
+            return keyData;
         }
     }
 }

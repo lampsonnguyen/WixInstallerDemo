@@ -50,7 +50,7 @@ class Program
 
     static void GenerateAndPrintAllKeys(string filePath)
     {
-        var keyGenerators = new Func<uint, (uint keyType, uint keyFormat, string keyName, uint keyECCurve, uint keyAESCipherType, uint keyAESCipherMode, uint keyIntegrityHashAlgorithm, uint keyLength, byte[] key, byte[] keyIntegrityHash)>[]
+        var keyGenerators = new Func<uint, KeyData>[]
         {
             i => KeyRingGenerator.GenerateAESKey(i, 256), // AES 256-bit key
             i => KeyRingGenerator.GenerateECKey(i, ECCurve.NamedCurves.nistP384),
