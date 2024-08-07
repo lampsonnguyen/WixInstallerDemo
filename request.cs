@@ -42,3 +42,38 @@ class Program
         }
     }
 }
+
+
+
+
+
+using System.Net.Http;
+using System.Threading.Tasks;
+
+namespace Benbarnett02;
+
+internal class BlogPost{
+
+  public static async Task<string> Post(){
+    using (HttpClient myHttpClient = new HttpClient())
+    {
+       // Most of our code will go in here.
+       // Set a base address
+      myHttpClient.BaseAddress = new Uri("https://example.com/");
+      // Don't put creds in code
+      string myCredential = "Bearer password123";
+      // Add headers
+      myHttpClient.DefaultRequestHeaders.Add("Accept", "application/json");
+      myHttpClient.DefaultRequestHeaders.Add("Authorization", myCredential);
+      
+      // Add content
+      string body = "Hi there!";
+      StringContent bodyContent = new StringContent(body, Encoding.UTF8, "text/plain");
+      
+      // Post to example.com/foo with our content
+      HttpResponseMessage myHttpResponse = await myHttpClient.PostAsync("/foo", bodyContent);
+      // Deal with the reply
+      MyObject responseObject = await httpResponse.Content.ReadAsAsync<MyObject>();
+    }
+  }
+}
