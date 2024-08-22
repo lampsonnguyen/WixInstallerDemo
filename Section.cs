@@ -8,14 +8,20 @@ public class KeyRingGenerator
     private readonly string _filePath;
     private readonly uint _numberOfKeys;
     private readonly KeyData[] _keys;
-
+    private readonly int _version;
     public KeyRingGenerator(string filePath, uint numberOfKeys, KeyData[] keys)
     {
         _filePath = filePath;
         _numberOfKeys = numberOfKeys;
         _keys = keys;
     }
-
+    private KeyRingGenerator(Builder builder)
+    {
+        _filePath = builder.FilePath;
+        _numberOfKeys = builder.NumberOfKeys;
+        _keys = builder.Keys;
+        _version = builder.Version;
+    }
     public void Generate()
     {
         using (MemoryStream memoryStream = new MemoryStream())
@@ -40,6 +46,34 @@ public class KeyRingGenerator
             }
         }
     }
+
+
+    public class Builder
+    {
+        public string FilePath { get; private set; }
+        public uint NumberOfKeys { get; private set; }
+        public KeyData[] Keys { get; private set; }
+        public int Version { get; private set; } = 2; // Default value
+
+        public Builder(string filePath, uint numberOfKeys, KeyData[] keys)
+        {
+            FilePath = filePath;
+            NumberOfKeys = numberOfKeys;
+            Keys = keys;
+        }
+
+        public Builder SetVersion(int version)
+        {
+            Version = version;
+            return this;
+        }
+
+        public KeyRingGenerator Build()
+        {
+            return new KeyRingGenerator(this);
+        }
+    }
+
 }
 
 public class Header
