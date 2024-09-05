@@ -1,0 +1,13 @@
+
+
+#Create a Combined PKCS#8 
+openssl pkcs8 -topk8 -nocrypt -in ec_private_key.pem -out ec_key_pair.pkcs8
+
+#make public key 
+openssl ec -in ec_private_key.pem -pubout -out ec_public_key.pem
+
+#convert public key to der 
+openssl ec -pubin -in ec_public_key.pem -outform DER -out ec_public_key.der
+
+#import
+pkcs11-tool --module "C:\SoftHSM2\lib\softhsm2-x64.dll" --login --pin 5678 --write-object ec_public_key.der --type pubkey --label "MyECPublicKey" --id C1
